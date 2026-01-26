@@ -6,6 +6,8 @@
 #include "Components/SphereComponent.h"
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 Afps415GGEProjectile::Afps415GGEProjectile() 
 {
@@ -44,7 +46,7 @@ void Afps415GGEProjectile::BeginPlay()
 	randColor = FLinearColor(UKismetMathLibrary::RandomFloatInRange(0.f, 1.f), UKismetMathLibrary::RandomFloatInRange(0.f, 1.f), UKismetMathLibrary::RandomFloatInRange(0.f, 1.f), 1.f);
 	
 	dmiMat = UMaterialInstanceDynamic::Create(projMat, this);
-	ballMesh->SetMaterial(0, dmiMat);
+	ballMesh->SetMaterial(1, dmiMat);
 
 	dmiMat->SetVectorParameterValue("ProjColor", randColor);
 }
@@ -61,6 +63,14 @@ void Afps415GGEProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActo
 
 	if (OtherActor != nullptr)
 	{
+		if (colorP)
+		{
+			UNiagaraComponent* particleComp = UNiagaraFunctionLibrary::SpawnSystemAttached(colorP, HitComp, NAME_None, FVector(0.f, 0.f, 0.f), FRotator(0.f), EAttachLocation::KeepRelativeOffset, true);
+			particleComp->SetNiagaraVariableLinearColor(FString("RandColor"), randColor);
+			ballMesh->DestroyComponent();
+			CollisionComp->BodyInstance.SetCollisionProfileName("NoCollision");
+		}
+
 		float frameNum = UKismetMathLibrary::RandomFloatInRange(0.f, 3.f);
 
 		auto Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), baseMat, FVector(UKismetMathLibrary::RandomFloatInRange(20.f, 40.f)), Hit.Location, Hit.Normal.Rotation(), 0.f);
