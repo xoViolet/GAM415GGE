@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "PerlInProcTerrain.h"
 
 Afps415GGEProjectile::Afps415GGEProjectile() 
 {
@@ -46,7 +47,7 @@ void Afps415GGEProjectile::BeginPlay()
 	randColor = FLinearColor(UKismetMathLibrary::RandomFloatInRange(0.f, 1.f), UKismetMathLibrary::RandomFloatInRange(0.f, 1.f), UKismetMathLibrary::RandomFloatInRange(0.f, 1.f), 1.f);
 	
 	dmiMat = UMaterialInstanceDynamic::Create(projMat, this);
-	ballMesh->SetMaterial(1, dmiMat);
+	ballMesh->SetMaterial(0, dmiMat);
 
 	dmiMat->SetVectorParameterValue("ProjColor", randColor);
 }
@@ -78,5 +79,12 @@ void Afps415GGEProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActo
 
 		MatInstance->SetVectorParameterValue("Color", randColor);
 		MatInstance->SetScalarParameterValue("Frame", frameNum);
+
+		APerlInProcTerrain* procTerrain = Cast<APerlInProcTerrain>(OtherActor);
+		
+		if (procTerrain)
+		{
+			procTerrain->AlterMesh(Hit.ImpactPoint);
+		}
 	}
 }
